@@ -1,5 +1,6 @@
 # Keil Assistant
 
+[marketplace](https://marketplace.visualstudio.com/items?itemName=WTL568594290.keil-assistant-2026)
 ### Fork自 [keil-assistant](https://github.com/github0null/keil-assistant)
 由于原插件不再更新，且在使用过程中遇到了一些问题，因此 fork 了该项目，进行了一些修改方便使用。
 

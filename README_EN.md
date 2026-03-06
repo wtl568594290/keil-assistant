@@ -1,5 +1,6 @@
 # Keil Assistant
 
+[marketplace](https://marketplace.visualstudio.com/items?itemName=WTL568594290.keil-assistant-2026)
 ### Fork from [keil-assistant](https://github.com/github0null/keil-assistant)
 Due to the original plugin no longer being updated and encountering some issues during use, the project was forked and some modifications were made for ease of use.
 - When adding a project, you can choose to generate the path *of the generated c_cpp_properties. json file relative to the keil uvproj file, which was previously generated in the directory where the uvproj file is located*
