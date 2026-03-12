@@ -1,8 +1,8 @@
 {
     "name": "keil-assistant-2026",
     "displayName": "Keil Assistant 2026",
-    "description": "An assistant for Keil uVision",
-    "version": "0.0.2",
+    "description": "An assistant for Keil uVision(fork from Keil Assistant)",
+    "version": "0.0.3",
     "publisher": "WTL568594290",
     "author": {
         "name": "wtl",
@@ -15,7 +15,7 @@
         "8051",
         "stm32"
     ],
-    "homepage": "https://github.com/wtl568594290/keil-assistant",
+    "homepage": "https://github.com/wtl568594290/keil-assistant-2026",
     "engines": {
         "vscode": "^1.38.0"
     },
@@ -25,16 +25,16 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onStartupFinished"
     ],
     "icon": "res/icons/icon.png",
     "main": "./dist/extension.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/wtl568594290/keil-assistant.git"
+        "url": "https://github.com/wtl568594290/keil-assistant-2026.git"
     },
     "bugs": {
-        "url": "https://github.com/wtl568594290/keil-assistant/issues",
+        "url": "https://github.com/wtl568594290/keil-assistant-2026/issues",
         "email": "568594290@qq.com"
     },
     "contributes": {
@@ -54,32 +54,24 @@
                         "markdownDescription": "MDK UV4.exe path",
                         "default": "null"
                     },
-                    "KeilAssistant.Project.ExcludeList": {
-                        "type": "array",
-                        "scope": "resource",
-                        "markdownDescription": "uVision project file name exclude list",
-                        "default": [
-                            "template.uvproj",
-                            "template.uvprojx"
-                        ]
-                    },
                     "KeilAssistant.Project.FileLocationList": {
                         "type": "array",
                         "scope": "resource",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string",
+                                    "markdownDescription": "uVision project file path"
+                                },
+                                "root": {
+                                    "type": "string",
+                                    "markdownDescription": "uVision project root path"
+                                }
+                            }
+                        },
                         "markdownDescription": "uVision project file locations",
                         "default": []
-                    },
-                    "KeilAssistant.Project.ProjxPath": {
-                        "type": "string",
-                        "scope": "resource",
-                        "markdownDescription": "uVision projx file path",
-                        "default": ""
-                    },
-                    "KeilAssistant.Project.RootRelativePath": {
-                        "type": "string",
-                        "scope": "resource",
-                        "markdownDescription": "uVision project root relative path",
-                        "default": ""
                     }
                 }
             }
@@ -301,25 +293,24 @@
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
-        "@types/vscode": "^1.38.0",
-        "@types/xml2js": "^0.4.5",
-        "glob": "^7.1.5",
-        "mocha": "^6.2.2",
-        "tslint": "^5.20.0",
-        "vscode-test": "^1.2.2",
         "@types/mocha": "^10.0.10",
         "@types/node": "22.x",
-        "typescript-eslint": "^8.56.1",
-        "eslint": "^9.39.3",
-        "typescript": "^5.9.3",
-        "ts-loader": "^9.5.4",
-        "webpack": "^5.105.3",
-        "webpack-cli": "^6.0.1",
+        "@types/vscode": "^1.38.0",
+        "@types/xml2js": "^0.4.5",
         "@vscode/test-cli": "^0.0.12",
-        "@vscode/test-electron": "^2.5.2"
+        "@vscode/test-electron": "^2.5.2",
+        "eslint": "^9.39.3",
+        "glob": "^7.1.5",
+        "mocha": "^6.2.2",
+        "ts-loader": "^9.5.4",
+        "tslint": "^5.20.0",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.56.1",
+        "vscode-test": "^1.2.2",
+        "webpack": "^5.105.3",
+        "webpack-cli": "^6.0.1"
     },
     "dependencies": {
-        "vscode-variables": "^0.1.3",
         "xml2js": "^0.4.23"
     }
 }

@@ -5,7 +5,6 @@ import * as event from "events";
 import * as fs from "fs";
 import * as node_path from "path";
 import * as child_process from "child_process";
-import * as vscodeVariables from "vscode-variables";
 
 import { File } from "../lib/node_utility/File";
 import { ResourceManager } from "./ResourceManager";
@@ -29,12 +28,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   subscriber.push(
     vscode.commands.registerCommand("explorer.open", async () => {
-      const projxPath = ResourceManager.getInstance().getProjxPath();
+      // 检查是否存在工作区文件夹
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders || workspaceFolders.length === 0) {
+        // 没有打开工作区，不执行初始化
+        vscode.window.showErrorMessage(
+          "No workspace folder opened, please open a workspace folder first.",
+        );
+        return;
+      }
       const uri = await vscode.window.showOpenDialog({
         openLabel: "Open a keil project",
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: vscode.Uri.file(projxPath),
         filters: {
           "keil project xml": ["uvproj", "uvprojx"],
         },
@@ -106,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  // prjExplorer.loadWorkspace();
+  prjExplorer.loadWorkspace();
 }
 
 export function deactivate() {
@@ -127,37 +133,6 @@ function openWorkspace(wsFile: File) {
     "vscode.openFolder",
     vscode.Uri.parse(wsFile.ToUri()),
   );
-}
-
-/**
- * 处理用户输入的相对路径，标准化路径分隔符
- * @param userInput 用户输入的路径字符串
- * @param basePath 根路径字符串
- * @returns 标准化后的路径字符串
- */
-function getUserInputPath(userInput: string, basePath: string): string {
-  // 1. 统一路径分隔符为当前系统的分隔符
-  const normalizedInput = userInput.replace(/[\\/]/g, node_path.sep);
-  return node_path.resolve(basePath, normalizedInput);
-}
-
-async function getRootRelativePath() {
-  const rootRelativePath =
-    ResourceManager.getInstance().getProjectRootRelativePath();
-  if (rootRelativePath === "") {
-    const result = await vscode.window.showInputBox({
-      prompt: "Please input project root relative path",
-      placeHolder: "e.g. [.] [..] [./src] ...",
-    });
-
-    const normalizedResult = result || ".";
-    await ResourceManager.getInstance().setProjectRootRelativePath(
-      normalizedResult,
-    );
-    return normalizedResult;
-  } else {
-    return rootRelativePath;
-  }
 }
 
 //===============================
@@ -310,15 +285,11 @@ class KeilProject implements IView, KeilProjectInfo {
   protected watcher: FileWatcher;
   protected targetList: Target[];
 
-  constructor(_uvprjFile: File, rootRelativePath: string) {
+  constructor(_uvprjFile: File, root: string) {
     this._event = new event.EventEmitter();
     this.uVsionFileInfo = <uVisonInfo>{};
     this.targetList = [];
-    // this.vscodeDir = new File(_uvprjFile.dir + File.sep + ".vscode");
-    // this.vscodeDir.CreateDir();
-    this.vscodeDir = new File(
-      getUserInputPath(rootRelativePath, _uvprjFile.dir) + File.sep + ".vscode",
-    );
+    this.vscodeDir = new File(root + File.sep + ".vscode");
     this.vscodeDir.CreateDir();
 
     const logPath = this.vscodeDir.path + File.sep + "keil-assistant.log";
@@ -1383,29 +1354,14 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView> {
           : vscode.workspace.workspaceFolders[0].uri.fsPath;
       const workspace = new File(wsFilePath);
       if (workspace.IsDir()) {
-        const excludeList =
-          ResourceManager.getInstance().getProjectExcludeList();
-        const fileLocationList = ResourceManager.getInstance()
-          .getProjectFileLocationList()
-          .map((path) => new File(path));
-        const uvList = workspace
-          .GetList([/\.uvproj[x]?$/i], File.EMPTY_FILTER)
-          .concat(fileLocationList)
-          .filter((file) => {
-            return !excludeList.includes(file.name);
-          });
-        for (const uvFile of uvList) {
+        const fileLocationList =
+          ResourceManager.getInstance().getProjectFileLocationList();
+        for (const uvFile of fileLocationList) {
           try {
-            let path = "";
-            try {
-              path = vscodeVariables(uvFile);
-            } catch (_) {}
-            if (path) {
-              await this.openProject(path);
-            }
+            await this.openProject(uvFile.path);
           } catch (error) {
             vscode.window.showErrorMessage(
-              `open project: '${uvFile.name}' failed !, msg: ${(<Error>error).message}`,
+              `open project: '${uvFile.path}' failed !, msg: ${(<Error>error).message}, please check the project file path.`,
             );
           }
         }
@@ -1415,13 +1371,34 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView> {
 
   async openProject(path: string): Promise<KeilProject | undefined> {
     const projxFile = new File(path);
-    await ResourceManager.getInstance().setProjxPath(projxFile.dir);
-    const rootRelativePath = await getRootRelativePath();
-    const nPrj = new KeilProject(projxFile, rootRelativePath);
+    const fileLocationList =
+      ResourceManager.getInstance().getProjectFileLocationList();
+    const tarFile = fileLocationList.find((file) => {
+      return file.path === projxFile.path;
+    });
+    let root = tarFile?.root || projxFile.dir;
+    if (!tarFile || !tarFile.root) {
+      const projxFileBaseName = projxFile.noSuffixName;
+      root =
+        (
+          await vscode.window.showOpenDialog({
+            openLabel: `Select '${projxFileBaseName}' root`,
+            canSelectFolders: true,
+            canSelectFiles: false,
+            canSelectMany: false,
+            defaultUri: vscode.Uri.file(projxFile.dir),
+            filters: {
+              "keil project xml": ["uvproj", "uvprojx"],
+            },
+          })
+        )?.[0].fsPath || projxFile.dir;
+    }
+    const nPrj = new KeilProject(projxFile, root);
     if (!this.prjList.has(nPrj.prjID)) {
       await nPrj.load();
       nPrj.on("dataChanged", () => this.updateView());
       this.prjList.set(nPrj.prjID, nPrj);
+      updateProjectFileLocationList(this.prjList);
 
       if (this.currentActiveProject == undefined) {
         this.currentActiveProject = nPrj;
@@ -1431,6 +1408,10 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView> {
       this.updateView();
 
       return nPrj;
+    } else {
+      if (!tarFile) {
+        updateProjectFileLocationList(this.prjList);
+      }
     }
   }
 
@@ -1441,6 +1422,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView> {
       prj.close();
       this.prjList.delete(pID);
       this.updateView();
+      updateProjectFileLocationList(this.prjList);
     }
   }
 
@@ -1583,4 +1565,15 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView> {
       return element.getChildViews();
     }
   }
+}
+
+function updateProjectFileLocationList(prj: Map<string, KeilProject>) {
+  console.log(prj);
+  const fileLocationList = Array.from(prj.values()).map((ele) => {
+    return {
+      path: ele.uvprjFile.path,
+      root: ele.vscodeDir.dir,
+    };
+  });
+  ResourceManager.getInstance().setProjectFileLocationList(fileLocationList);
 }

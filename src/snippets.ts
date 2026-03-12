@@ -26,7 +26,11 @@ const c51Snippets = () => {
   const c51InterruptMacroProvider =
     vscode.languages.registerCompletionItemProvider(["c"], {
       provideCompletionItems(doc) {
-        if (!doc.fileName.toLowerCase().endsWith(".h")) return undefined;
+        if (
+          !doc.fileName.toLowerCase().endsWith(".h") &&
+          !doc.fileName.toLowerCase().endsWith(".c")
+        )
+          return undefined;
 
         const item = new vscode.CompletionItem(
           "INTERRUPT",

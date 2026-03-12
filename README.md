@@ -1,11 +1,10 @@
-# Keil Assistant
+# Keil Assistant 2026
 
 [marketplace](https://marketplace.visualstudio.com/items?itemName=WTL568594290.keil-assistant-2026)
 ### Fork自 [keil-assistant](https://github.com/github0null/keil-assistant)
 由于原插件不再更新，且在使用过程中遇到了一些问题，因此 fork 了该项目，进行了一些修改方便使用。
 
 - 添加项目时,可以选择生成的c_cpp_properties.json文件相对于keil uvproj文件的路径 *之前是在uvproj文件所在目录生成的*
-- 记住keil uvproj文件的路径,在打开任何文件的情况下,都使用该路径打开keil项目 *原先添加项目的对话框默认是当前打开文件所在的路径*
 - 增加两个C51的snippet用来防止interrupt x报错
   - isr 中断处理函数
   - INTERRUPT 中断向量宏
@@ -43,7 +42,7 @@ vscode 上的 Keil 辅助工具，与 c/c++ 插件配合使用.
 
 1. 安装 C/C++ 插件
 >
-2. 进入 Keil-Assistant 插件设置，设置好 keil 可执行文件 UV4.exe 的绝对路径
+2. 进入 Keil Assistant 2026 插件设置，设置好 keil 可执行文件 UV4.exe 的绝对路径
  
  ![setting](./res/preview/setting.png)
 
@@ -94,23 +93,8 @@ vscode 上的 Keil 辅助工具，与 c/c++ 插件配合使用.
  ![show_referance](./res/preview/ref_show.png)
 
 ***
+### 其它
+- **C51中断函数报错**:定义中断函数时,可以使用 `void xxx_isr(void) INTERRUPT(x)`来定义中断函数,其中x为中断向量号.添加`INTERRUPT`与`isr`两个snippet,
 
-### 其他设置
-
-- 工作区设置：项目排除列表(`KeilAssistant.Project.ExcludeList`)
- 当某个目录下存在多个 keil 项目时，使用插件打开该目录，插件会加载所有的 keil 项目，通过此选项，可以指定需要排除哪些 keil 项目，防止在打开该工作区时自动加载该项目
- **默认的排除列表**：
-  ```json
-  [
-      "template.uvproj",
-      "template.uvprojx"
-  ]
-  ```
-
-### 还有其他问题 ？
-
-可以到以下位置进行交流
-
-- [论坛: https://discuss.em-ide.com/t/keil-assistant](https://discuss.em-ide.com/t/keil-assistant)
-
-- [Github Issue: https://github.com/github0null/keil-assistant/issues](https://github.com/github0null/keil-assistant/issues)
+![interrupt](./res/preview/interrupt.png)
+![isr](./res/preview/isr.png)

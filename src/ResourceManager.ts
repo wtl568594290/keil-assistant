@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { File } from "../lib/node_utility/File";
 
+interface KeilLocation {
+  path: string;
+  root: string;
+}
+
 let _instance: ResourceManager | undefined;
 
 const dirList: string[] = [
@@ -50,9 +55,31 @@ export class ResourceManager {
     }
   }
 
+  private getConfigTarget(): vscode.ConfigurationTarget | null {
+    const folders = vscode.workspace.workspaceFolders;
+
+    // 多根工作区 → 写入 workspace
+    if (folders && folders.length > 1) {
+      return vscode.ConfigurationTarget.Workspace;
+    }
+
+    // 单文件夹 → 写入 folder
+    if (folders && folders.length === 1) {
+      return vscode.ConfigurationTarget.WorkspaceFolder;
+    }
+
+    return null;
+  }
+
   private getAppConfig(): vscode.WorkspaceConfiguration {
-    const folder = vscode.workspace.workspaceFolders?.[0];
-    return vscode.workspace.getConfiguration("KeilAssistant", folder);
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+      if (workspaceFolders.length == 1) {
+        const folder = workspaceFolders[0];
+        return vscode.workspace.getConfiguration("KeilAssistant", folder);
+      }
+    }
+    return vscode.workspace.getConfiguration("KeilAssistant");
   }
 
   getBuilderExe(): string {
@@ -67,37 +94,48 @@ export class ResourceManager {
     return this.getAppConfig().get<string>("MDK.Uv4Path") || "null";
   }
 
-  getProjectExcludeList(): string[] {
-    return this.getAppConfig().get<string[]>("Project.ExcludeList") || [];
-  }
-
-  getProjectFileLocationList(): string[] {
-    return this.getAppConfig().get<string[]>("Project.FileLocationList") || [];
-  }
-
-  getProjectRootRelativePath(): string {
-    return this.getAppConfig().get<string>("Project.RootRelativePath") || "";
-  }
-
-  setProjectRootRelativePath(path: string) {
-    return this.getAppConfig().update(
-      "Project.RootRelativePath",
-      path,
-      vscode.ConfigurationTarget.WorkspaceFolder,
+  getProjectFileLocationList(): KeilLocation[] {
+    // return this.getAppConfig().get<string[]>("Project.FileLocationList") || [];
+    return (
+      this.getAppConfig().get<KeilLocation[]>("Project.FileLocationList") || []
     );
   }
 
-  getProjxPath(): string {
-    return this.getAppConfig().get<string>("Project.ProjxPath") || "";
-  }
-
-  setProjxPath(path: string) {
+  setProjectFileLocationList(list: KeilLocation[]) {
+    const target = this.getConfigTarget();
+    if (target === null) {
+      return;
+    }
     return this.getAppConfig().update(
-      "Project.ProjxPath",
-      path,
-      vscode.ConfigurationTarget.WorkspaceFolder,
+      "Project.FileLocationList",
+      list,
+      this.getConfigTarget(),
     );
   }
+
+  // getProjectRootRelativePath(): string {
+  //   return this.getAppConfig().get<string>("Project.RootRelativePath") || "";
+  // }
+
+  // setProjectRootRelativePath(path: string) {
+  //   return this.getAppConfig().update(
+  //     "Project.RootRelativePath",
+  //     path,
+  //     vscode.ConfigurationTarget.WorkspaceFolder,
+  //   );
+  // }
+
+  // getProjxFilePath(): string {
+  //   return this.getAppConfig().get<string>("Project.ProjxFilePath") || "";
+  // }
+
+  // setProjxFilePath(path: string) {
+  //   return this.getAppConfig().update(
+  //     "Project.ProjxFilePath",
+  //     path,
+  //     vscode.ConfigurationTarget.WorkspaceFolder,
+  //   );
+  // }
 
   getIconByName(name: string): string | undefined {
     return this.iconMap.get(name);

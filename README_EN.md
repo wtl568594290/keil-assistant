@@ -1,4 +1,4 @@
-# Keil Assistant
+# Keil Assistant 2026
 
 [marketplace](https://marketplace.visualstudio.com/items?itemName=WTL568594290.keil-assistant-2026)
 ### Fork from [keil-assistant](https://github.com/github0null/keil-assistant)
@@ -8,6 +8,8 @@ Due to the original plugin no longer being updated and encountering some issues 
 - Add two C51 snippets to prevent interrupt x errors
   - isr interrupt handler function
   - INTERRUPT interrupt vector macro
+
+`vsce package`
 
 ## Summary 📑
 
@@ -38,7 +40,7 @@ It provides syntax highlighting, code snippets for Keil projects, and supports c
 
 1. Install the C/C++ plug-in
 >
-2. Go to the Keil-Assistant plug-in Settings and set the absolute path of the Keil executable uv4.exe
+2. Go to the Keil Assistant 2026 plug-in Settings and set the absolute path of the Keil executable uv4.exe
  
  ![setting](./res/preview/setting.png)
 
@@ -89,23 +91,8 @@ It provides syntax highlighting, code snippets for Keil projects, and supports c
  ![show_referance](./res/preview/ref_show.png)
 
 ***
+### Others
+- **C51 Interrupt Function Error**: When defining an interrupt function, you can use `void xxx_isr (void) INTERRUPT (x)` to define the interrupt function, where x is the interrupt vector number. Add two snippets, `INTERRUPT` and `ISR`,
 
-### Other settings
-
-- Workspace Settings: Project exclusion list(`KeilAssistant.Project.ExcludeList`)
- When there are multiple Keil projects in a directory, open it with the plug-in, and the plug-in loads all keil projects. This option allows you to specify which Keil projects you want to exclude, preventing the project from being automatically loaded when the workspace is opened
- **The default exclusion list**：
-  ```json
-  [
-      "template.uvproj",
-      "template.uvprojx"
-  ]
-  ```
-
-### Any other questions ?
-
-You can go to the following places to communicate
-
-- [Discussion: https://discuss.em-ide.com/t/keil-assistant](https://discuss.em-ide.com/t/keil-assistant)
-
-- [Github Issue: https://github.com/github0null/keil-assistant/issues](https://github.com/github0null/keil-assistant/issues)
+![interrupt](./res/preview/interrupt.png)
+![isr](./res/preview/isr.png)
